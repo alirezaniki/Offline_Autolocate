@@ -1,0 +1,75 @@
+#!/bin/bash
+
+
+USAGE ()
+{
+	cat <<- EOF
+	Usage []:
+	$0 -f <MSEED_FILE> -d <DATABASE> -n <NAME>
+	-f : Specifies the absolute path to the input mseed_file 
+	-d : Specifies the database. e.g mysql://sysop:sysop@HOST/seiscomp3
+	-n : Specifies the event Name for processing	
+	OPTIONS:
+	-h : Print help message
+	EOF
+}
+
+
+PROCESS ()
+{	
+	echo "Starting scautopic ..."
+	seiscomp exec scautopick -I $MSEEDFILE -d $DATABASE --playback --ep --debug > $NAME/PICKS.xml 2> $NAME/log.dat
+	echo "Starting scautoloc ..."
+	seiscomp exec scautoloc -d $DATABASE --ep $NAME/PICKS.xml --offline --debug > $NAME/ORIGINS.xml 2>> $NAME/log.dat
+	echo "Starting scamp ..."
+	seiscomp exec scamp -d $DATABASE --ep $NAME/ORIGINS.xml --debug > $NAME/AMPLITUDES.xml 2>> $NAME/log.dat
+	echo "Starting scmag ..."
+	seiscomp exec scmag -d $DATABASE --ep $NAME/AMPLITUDES.xml --debug > $NAME/MAGS.xml 2>> $NAME/log.dat
+	echo "Starting scevent ..."
+	seiscomp exec scevent -d $DATABASE --ep $NAME/MAGS.xml --debug > $NAME/EVENT.xml 2>> $NAME/log.dat
+	echo "Starting scdb ..."
+	seiscomp exec scdb -d $DATABASE -i $NAME/EVENT.xml --debug  2>> $NAME/log.dat
+	
+	grep -w "caching event" $NAME/log.dat | awk '{print $6}' > $NAME/event_ID.log
+	
+	if [ -s $NAME/event_ID.log ]; then
+		mkdir $NAME/INFO
+		cat $NAME/event_ID.log | while read EVEID; do
+			seiscomp exec scbulletin -E $EVEID -3 -d "$DATABASE" > $NAME/INFO/$EVEID.info
+		done	
+	fi	
+}
+
+
+while getopts "f:d:n:h" options; do
+	case $options in
+		h)
+			USAGE && exit
+		;;
+		f)
+			MSEEDFILE="$OPTARG"
+		;;
+		d)
+			DATABASE="$OPTARG"
+		;;
+		n)
+			NAME="$OPTARG"			
+		;;
+		\?)
+			USAGE && exit
+		;;
+	esac
+done
+
+# Check arguments availablity ...
+
+[ ! -f "$MSEEDFILE" ] && echo -e "No input file specified.\nUse $0 -h to see help message..." && exit
+[ -z "$DATABASE" ] && echo -e "No database specified.\nUse $0 -h to see help message..." && exit
+[ -z "$NAME" ] && read -p "No event ID specified. Please Enter an Event-ID: " NAME
+[ ! -d "$NAME" ] && mkdir $NAME || rm -f $NAME/*
+
+echo "#~~~~~~~~~~~~~"
+seiscomp start scmaster spread seedlink 
+echo "#~~~~~~~~~~~~~"
+
+PROCESS
