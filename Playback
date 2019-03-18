@@ -1,12 +1,14 @@
 #!/bin/bash
 
-
 USAGE ()
 {
 	cat <<- EOF
 	Usage []:
-	$0 -f <MSEED_FILE> -d <DATABASE> -n <NAME>
+	$0 [-f <MSEED_FILE> | -a <Archive>] -t <TIME_RANGE> -d <DATABASE> -n <NAME>
 	-f : Specifies the absolute path to the input mseed_file 
+	-a : Specifies the path to the archive to extract data from (requires -t option)
+	-t : Specifies the time range for data extraction (only with -a option)
+		 Syntax is <'YYYY/MM/DD hh:mm:ss~YYYY/MM/DD hh:mm:ss'>
 	-d : Specifies the database. e.g mysql://sysop:sysop@HOST/seiscomp3
 	-n : Specifies the event Name for processing	
 	OPTIONS:
@@ -18,17 +20,22 @@ USAGE ()
 PROCESS ()
 {	
 	echo "Starting scautopic ..."
-	seiscomp exec scautopick -I $MSEEDFILE -d $DATABASE --playback --ep --debug > $NAME/PICKS.xml 2> $NAME/log.dat
+	if [ -f "$MSEEDFILE" ]; then
+		seiscomp exec scautopick -I "$MSEEDFILE" -d "$DATABASE" --playback --ep --debug > $NAME/PICKS.xml 2> $NAME/log.dat
+	else
+		seiscomp exec scart -dsvE -t "$TIME_RANGE" "$ARCHIVE" 2> $NAME/log.dat | seiscomp exec scautopick -I - \
+		-d "$DATABASE" --playback --debug --ep > $NAME/PICKS.xml 2> $NAME/log.dat
+	fi
 	echo "Starting scautoloc ..."
-	seiscomp exec scautoloc -d $DATABASE --ep $NAME/PICKS.xml --offline --debug > $NAME/ORIGINS.xml 2>> $NAME/log.dat
+	seiscomp exec scautoloc -d "$DATABASE" --ep $NAME/PICKS.xml --offline --debug > $NAME/ORIGINS.xml 2>> $NAME/log.dat
 	echo "Starting scamp ..."
-	seiscomp exec scamp -d $DATABASE --ep $NAME/ORIGINS.xml --debug > $NAME/AMPLITUDES.xml 2>> $NAME/log.dat
+	seiscomp exec scamp -d "$DATABASE" --ep $NAME/ORIGINS.xml --debug > $NAME/AMPLITUDES.xml 2>> $NAME/log.dat
 	echo "Starting scmag ..."
-	seiscomp exec scmag -d $DATABASE --ep $NAME/AMPLITUDES.xml --debug > $NAME/MAGS.xml 2>> $NAME/log.dat
+	seiscomp exec scmag -d "$DATABASE" --ep $NAME/AMPLITUDES.xml --debug > $NAME/MAGS.xml 2>> $NAME/log.dat
 	echo "Starting scevent ..."
-	seiscomp exec scevent -d $DATABASE --ep $NAME/MAGS.xml --debug > $NAME/EVENT.xml 2>> $NAME/log.dat
+	seiscomp exec scevent -d "$DATABASE" --ep $NAME/MAGS.xml --debug > $NAME/EVENT.xml 2>> $NAME/log.dat
 	echo "Starting scdb ..."
-	seiscomp exec scdb -d $DATABASE -i $NAME/EVENT.xml --debug  2>> $NAME/log.dat
+	seiscomp exec scdb -d "$DATABASE" -i $NAME/EVENT.xml --debug  2>> $NAME/log.dat
 	
 	grep -w "caching event" $NAME/log.dat | awk '{print $6}' > $NAME/event_ID.log
 	
@@ -41,17 +48,23 @@ PROCESS ()
 }
 
 
-while getopts "f:d:n:h" options; do
+while getopts "f:d:a:t:n:h" options; do
 	case $options in
 		h)
 			USAGE && exit
 		;;
 		f)
 			MSEEDFILE="$OPTARG"
+		;;	
+		a)
+			ARCHIVE="$OPTARG"	
 		;;
 		d)
 			DATABASE="$OPTARG"
 		;;
+		t)
+			TIME_RANGE="$OPTARG"
+		;;	
 		n)
 			NAME="$OPTARG"			
 		;;
@@ -63,13 +76,23 @@ done
 
 # Check arguments availablity ...
 
-[ ! -f "$MSEEDFILE" ] && echo -e "No input file specified.\nUse $0 -h to see help message..." && exit
+[ \( -f "$MSEEDFILE" \) -a \( -d "$ARCHIVE" \) ] && echo -e "You can not use -f and -a options at the same time.\nUse $0 -h to see help message..." && exit
+[ \( ! -f "$MSEEDFILE" \) -a \( ! -d "$ARCHIVE" \) ] && echo -e "You must provide an Archive or mseed data.\nUse $0 -h to see help message..." && exit
+[ \( -f "$MSEEDFILE" \) -a \( -n "$TIME_RANGE" \) ] && echo -e "-t options only must be used with -a option.\nUse $0 -h to see help message..." && exit
+
+if [ \( -d "$ARCHIVE" \) -a \( -z "$TIME_RANGE" \) ]; then
+	echo -e "Please specify a time range for data extraction.\nUse $0 -h to see help message..." && exit
+elif [ \( -d "$ARCHIVE" \) -a \( "${#TIME_RANGE}" -ne "39" \) ]; then
+	echo "The currect syntax for -t option is <'YYYY/MM/DD hh:mm:ss~YYYY/MM/DD hh:mm:ss'>" && exit
+fi
+	
 [ -z "$DATABASE" ] && echo -e "No database specified.\nUse $0 -h to see help message..." && exit
 [ -z "$NAME" ] && read -p "No event ID specified. Please Enter an Event-ID: " NAME
 [ ! -d "$NAME" ] && mkdir $NAME || rm -f $NAME/*
 
 echo "#~~~~~~~~~~~~~"
-seiscomp start scmaster spread seedlink 
+seiscomp start scmaster spread 
 echo "#~~~~~~~~~~~~~"
 
 PROCESS
+
