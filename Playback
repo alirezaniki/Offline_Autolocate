@@ -5,12 +5,12 @@ USAGE ()
 	cat <<- EOF
 	Usage []:
 	$0 [-f <MSEED_FILE> | -a <Archive>] -t <TIME_RANGE> -d <DATABASE> -n <NAME>
-	-f : Specifies the absolute path to the input mseed_file 
-	-a : Specifies the path to the archive to extract data from (requires -t option)
-	-t : Specifies the time range for data extraction (only with -a option)
+	-f : Specify the absolute path to the input mseed_file 
+	-a : Specify the path to the archive to extract data from (requires -t option)
+	-t : Specify the time range for data extraction (only with -a option)
 		 Syntax is <'YYYY/MM/DD hh:mm:ss~YYYY/MM/DD hh:mm:ss'>
-	-d : Specifies the database. e.g mysql://sysop:sysop@HOST/seiscomp3
-	-n : Specifies the event Name for processing	
+	-d : Specify the database. e.g mysql://sysop:sysop@HOST/seiscomp3
+	-n : Specify the event Name for processing	
 	OPTIONS:
 	-h : Print help message
 	EOF
@@ -76,9 +76,9 @@ done
 
 # Check arguments availablity ...
 
-[ \( -f "$MSEEDFILE" \) -a \( -d "$ARCHIVE" \) ] && echo -e "You can not use -f and -a options at the same time.\nUse $0 -h to see help message..." && exit
-[ \( ! -f "$MSEEDFILE" \) -a \( ! -d "$ARCHIVE" \) ] && echo -e "You must provide an Archive or mseed data.\nUse $0 -h to see help message..." && exit
-[ \( -f "$MSEEDFILE" \) -a \( -n "$TIME_RANGE" \) ] && echo -e "-t options only must be used with -a option.\nUse $0 -h to see help message..." && exit
+[ \( -f "$MSEEDFILE" \) -a \( -d "$ARCHIVE" \) ] && echo -e "You can not use -f and -a options simultaneously.\nUse $0 -h to see help message..." && exit
+[ \( ! -f "$MSEEDFILE" \) -a \( ! -d "$ARCHIVE" \) ] && echo -e "You must provide an Archive dir or mseed data.\nUse $0 -h to see help message..." && exit
+[ \( -f "$MSEEDFILE" \) -a \( -n "$TIME_RANGE" \) ] && echo -e "-t option only must be used with -a option.\nUse $0 -h to see help message..." && exit
 
 if [ \( -d "$ARCHIVE" \) -a \( -z "$TIME_RANGE" \) ]; then
 	echo -e "Please specify a time range for data extraction.\nUse $0 -h to see help message..." && exit
