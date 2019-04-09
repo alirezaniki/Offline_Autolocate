@@ -16,7 +16,7 @@ You can read and modify it as you wish.
 
 1- Create two directories named "YFile" and "Mseed" next to the main script.
 
-2- Put all your events Yfile data (in separated folders) in Input dir with desired name.
+2- Put all your events Yfile data (in separated folders) in YFile dir with desired name.
 
 3- Set the Proper paths for parent directories in the main script.
 
