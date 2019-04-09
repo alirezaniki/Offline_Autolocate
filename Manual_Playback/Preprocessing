@@ -1,0 +1,73 @@
+#!/bin/bash
+
+################## Parent Directories
+SEISAN_HOME="/home/alireza/Programs/Seismo"
+HOME_DIR="/home/alireza/Desktop/offline_autoloc/Manual_Playback"
+SEISCOMP_DIR="/home/alireza/seiscomp3"
+
+
+################# DO NOT CHANGE ANYTHING BELOW
+YFile="$HOME_DIR/YFile"
+Mseed="$HOME_DIR/Mseed"
+
+
+[ -z "$HOME_DIR" ] && echo -e "Please set the \"HOME_DIR\" Path in the program's script and try again.\nIt must be the absolute path to the \"$SCRIPT\" script" && exit
+[ -z "$SEISCOMP_DIR" ] && echo "Please set the \"SEISCOMP_DIR\" Path in the program's script and try again." && exit
+[ -z "$SEISAN_HOME" ] && echo "Please set the \"SEISAN_HOME\" Path in the program's script and try again." && exit
+
+[[ ! `grep -i "msmod" ~/.bashrc` ]] && echo -e "It seems you haven't installed msmod software!\n\
+If so, install it and add its path to ~/.bashrc and try again." && exit
+[[ ! `jackseis` ]] && echo -e "It seems you haven't installed Pyrocko package!\n\
+If so, install it and try again." && exit
+
+cd "$YFile"
+for dir in `ls -d -1 *`; do
+	[ ! -d "$Mseed"/"$dir" ] && mkdir "$Mseed"/"$dir" 2> /dev/null || rm -f "$Mseed"/"$dir"/* 
+	[[ `ls $SEISAN_HOME/WAV/* 2> /dev/null` ]] && rm -f $SEISAN_HOME/WAV/*
+
+	cp "$dir"/Y* "$SEISAN_HOME"/WAV; cd $SEISAN_HOME/WAV
+	dirf Y*
+	nansei <<< filenr.lis
+	dirf 20*
+	seisei <<- EOF
+	1
+	mseed
+	IR
+	180
+	EOF
+	
+	Mseed_File=`ls -S | head -1`
+	cp $Mseed_File $Mseed/$dir; cd $Mseed/$dir
+	jackseis ./$Mseed_File --output-dir=./ --output-format="mseed" --output=trace.%n.%s.%c
+	for data in `ls trace*`; do
+		sta=`echo $data | cut -f 3 -d "."`
+		[ ! `ls $SEISCOMP_DIR/etc/key/*$sta 2> /dev/null` ] && echo "No key file excists for $sta station." && continue
+		net=`ls $SEISCOMP_DIR/etc/key/*$sta | cut -f 2 -d "_"`
+		if [ \( "$net" = "IR" \) -o \( "$net" = "BI" \) ]; then
+			enz=`echo $data | cut -f 4 -d "."`; enz="${enz:2:1}"
+			channel=`grep "global" $SEISCOMP_DIR/etc/key/*$sta | awk -F ":" '{print substr($2,1,2)}'`
+			msmod --net "$net" --chan "$channel$enz" -i $data
+		fi
+	done	
+	cat trace* > PrepairedData.mseed
+	rm trace* $Mseed_File
+	cd "$YFile"
+done
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
