@@ -15,8 +15,6 @@ Database="mysql://sysop:sysop@localhost/seiscomp3"
 
 - Seiscomp3
 
-- Pyrocko 
-
 # TIPS
 
 Please complete the main headers (network, station, channel) in the input mseed file before proceeding.
