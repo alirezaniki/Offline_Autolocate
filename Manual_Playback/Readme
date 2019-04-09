@@ -1,0 +1,22 @@
+This script is written for Iranian researchers who are dealing with Naqs and Yfile data to prepare Yfile data for manual/automated locating.
+You can read and modify it as you wish.
+
+# Requirements
+
+- Seiscomp3
+
+- Seisan
+
+- Pyrocko 
+
+- Msmod
+
+# TIPS
+
+1- Create two directories named "YFile" and "Mseed" next to the main script.
+
+2- Put all your events Yfile data (in separated folders) in Input dir with desired name.
+
+3- Set the Proper paths for parent directories in the main script.
+
+Feel free to contact me in case of any problems
