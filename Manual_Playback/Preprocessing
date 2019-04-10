@@ -14,15 +14,16 @@ Mseed="$HOME_DIR/Mseed"
 [ -z "$HOME_DIR" ] && echo -e "Please set the \"HOME_DIR\" Path in the program's script and try again.\nIt must be the absolute path to the \"$SCRIPT\" script" && exit
 [ -z "$SEISCOMP_DIR" ] && echo "Please set the \"SEISCOMP_DIR\" Path in the program's script and try again." && exit
 [ -z "$SEISAN_HOME" ] && echo "Please set the \"SEISAN_HOME\" Path in the program's script and try again." && exit
+[ ! `ls $YFile/*/ 2> /dev/null` ] && echo "No data available in YFile directory" && exit
 
-[[ ! `grep -i "msmod" ~/.bashrc` ]] && echo -e "It seems you haven't installed msmod software!\n\
+[[ ! `grep -i "msmod" ~/.bashrc 2> /dev/null` ]] && echo -e "It seems you haven't installed msmod software!\n\
 If so, install it and add its path to ~/.bashrc and try again." && exit
-[[ ! `jackseis` ]] && echo -e "It seems you haven't installed Pyrocko package!\n\
+[[ ! `jackseis 2> /dev/null` ]] && echo -e "It seems you haven't installed Pyrocko package!\n\
 If so, install it and try again." && exit
 
 cd "$YFile"
-for dir in `ls -d -1 *`; do
-	[ ! -d "$Mseed"/"$dir" ] && mkdir "$Mseed"/"$dir" 2> /dev/null || rm -f "$Mseed"/"$dir"/* 
+for dir in `ls -d */ 2> /dev/null | cut -f 1 -d "/"`; do
+	[ ! -d "$Mseed"/"$dir" ] && mkdir "$Mseed"/"$dir" 2> /dev/null || rm -f "$Mseed"/"$dir"/* 2> /dev/null
 	[[ `ls $SEISAN_HOME/WAV/* 2> /dev/null` ]] && rm -f $SEISAN_HOME/WAV/*
 
 	cp "$dir"/Y* "$SEISAN_HOME"/WAV; cd $SEISAN_HOME/WAV
@@ -53,21 +54,3 @@ for dir in `ls -d -1 *`; do
 	rm trace* $Mseed_File
 	cd "$YFile"
 done
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
