@@ -10,11 +10,10 @@ SEISCOMP_DIR="/home/alireza/seiscomp3"
 YFile="$HOME_DIR/YFile"
 Mseed="$HOME_DIR/Mseed"
 
-
 [ -z "$HOME_DIR" ] && echo -e "Please set the \"HOME_DIR\" Path in the program's script and try again.\nIt must be the absolute path to the \"$SCRIPT\" script" && exit
 [ -z "$SEISCOMP_DIR" ] && echo "Please set the \"SEISCOMP_DIR\" Path in the program's script and try again." && exit
 [ -z "$SEISAN_HOME" ] && echo "Please set the \"SEISAN_HOME\" Path in the program's script and try again." && exit
-[ ! `ls $YFile/*/ 2> /dev/null` ] && echo "No data available in YFile directory" && exit
+[[ ! `ls $YFile/*/ 2> /dev/null` ]] && echo "No data available in YFile directory" && exit
 
 [[ ! `grep -i "msmod" ~/.bashrc 2> /dev/null` ]] && echo -e "It seems you haven't installed msmod software!\n\
 If so, install it and add its path to ~/.bashrc and try again." && exit
@@ -25,9 +24,9 @@ cd "$YFile"
 for dir in `ls -d */ 2> /dev/null | cut -f 1 -d "/"`; do
 	[ ! -d "$Mseed"/"$dir" ] && mkdir "$Mseed"/"$dir" 2> /dev/null || rm -f "$Mseed"/"$dir"/* 2> /dev/null
 	[[ `ls $SEISAN_HOME/WAV/* 2> /dev/null` ]] && rm -f $SEISAN_HOME/WAV/*
-
-	cp "$dir"/Y* "$SEISAN_HOME"/WAV; cd $SEISAN_HOME/WAV
-	dirf Y*
+	[[ `ls $dir/Y* 2> /dev/null` ]] && char="Y" || char="y"
+	cp "$dir"/"$char"* "$SEISAN_HOME"/WAV; cd $SEISAN_HOME/WAV
+	dirf "$char"*
 	nansei <<< filenr.lis
 	dirf 20*
 	seisei <<- EOF
