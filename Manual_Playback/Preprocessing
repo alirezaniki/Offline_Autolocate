@@ -1,8 +1,7 @@
 #!/bin/bash
 
 ################## Parent Directories
-SEISAN_HOME="/home/alireza/Programs/Seismo"
-HOME_DIR="/home/alireza/Desktop/offline_autoloc/Manual_Playback"
+HOME_DIR="/home/alireza/Desktop/ISI/Manual_Playback"
 SEISCOMP_DIR="/home/alireza/seiscomp3"
 
 
@@ -10,9 +9,9 @@ SEISCOMP_DIR="/home/alireza/seiscomp3"
 YFile="$HOME_DIR/YFile"
 Mseed="$HOME_DIR/Mseed"
 
+
 [ -z "$HOME_DIR" ] && echo -e "Please set the \"HOME_DIR\" Path in the program's script and try again.\nIt must be the absolute path to the \"$SCRIPT\" script" && exit
 [ -z "$SEISCOMP_DIR" ] && echo "Please set the \"SEISCOMP_DIR\" Path in the program's script and try again." && exit
-[ -z "$SEISAN_HOME" ] && echo "Please set the \"SEISAN_HOME\" Path in the program's script and try again." && exit
 [[ ! `ls $YFile/*/ 2> /dev/null` ]] && echo "No data available in YFile directory" && exit
 
 [[ ! `grep -i "msmod" ~/.bashrc 2> /dev/null` ]] && echo -e "It seems you haven't installed msmod software!\n\
@@ -22,22 +21,15 @@ If so, install it and try again." && exit
 
 cd "$YFile"
 for dir in `ls -d */ 2> /dev/null | cut -f 1 -d "/"`; do
-	[ ! -d "$Mseed"/"$dir" ] && mkdir "$Mseed"/"$dir" 2> /dev/null || rm -f "$Mseed"/"$dir"/* 2> /dev/null
-	[[ `ls $SEISAN_HOME/WAV/* 2> /dev/null` ]] && rm -f $SEISAN_HOME/WAV/*
+	[ ! -d "$Mseed"/"$dir" ] && mkdir "$Mseed"/"$dir" 2> /dev/null || rm -f "$Mseed"/"$dir"/* 2> /dev/null	
 	[[ `ls $dir/Y* 2> /dev/null` ]] && char="Y" || char="y"
-	cp "$dir"/"$char"* "$SEISAN_HOME"/WAV; cd $SEISAN_HOME/WAV
-	dirf "$char"*
-	nansei <<< filenr.lis
-	dirf 20*
-	seisei <<- EOF
-	1
-	mseed
-	IR
-	180
-	EOF
+
+	sed -i "/st =/c\st = obs.read (\"$YFile/$dir/$char*\")" $HOME_DIR/Y2M.py  2> /dev/null
+	sed -i "/st.write/c\st.write (\"$YFile/$dir/$dir.mseed\", format=\"mseed\")" $HOME_DIR/Y2M.py  2> /dev/null
+	python $HOME_DIR/Y2M.py
 	
-	Mseed_File=`ls -S | head -1`
-	cp $Mseed_File $Mseed/$dir; cd $Mseed/$dir
+	Mseed_File="$dir.mseed"
+	cp $dir/$Mseed_File $Mseed/$dir; cd $Mseed/$dir
 	jackseis ./$Mseed_File --output-dir=./ --output-format="mseed" --output=trace.%n.%s.%c
 	for data in `ls trace*`; do
 		sta=`echo $data | cut -f 3 -d "."`
