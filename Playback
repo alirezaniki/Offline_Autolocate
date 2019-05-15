@@ -4,6 +4,18 @@
 HOME_DIR="/home/alireza/Desktop/offline_autoloc/Automated_Playback"
 SEISCOMP_DIR="/home/alireza/seiscomp3"
 
+################## Config
+# MYSQL CONF
+SQL_U="root"			# SQL Username
+SQL_P="SC3"	 			# SQL Password
+SQL_DB="seiscomp3"		# Database
+SQL_Host="localhost"    # Host
+
+# SC3 CONF
+RELOCATE="yes"			# whether to relocate events or not (yes/no)
+NLL_PRO="5L"			# NLL Profile
+userID="root"           # User ID
+Host="localhost"        # Host
 
 ################### DO NOT CHANGE ANYTHING BELOW
 PROCESS_DIR="$HOME_DIR/PROCESS"
@@ -59,16 +71,36 @@ PROCESS ()
 	seiscomp exec scmag -d "$DATABASE" --ep $OUTPUT/$NAME/AMPLITUDES.xml --debug > $OUTPUT/$NAME/MAGS.xml 2>> $OUTPUT/$NAME/log.dat
 	echo "Starting scevent ..."
 	seiscomp exec scevent -d "$DATABASE" --ep $OUTPUT/$NAME/MAGS.xml --debug > $OUTPUT/$NAME/EVENT.xml 2>> $OUTPUT/$NAME/log.dat
-	echo "Starting scdb ..."
-	seiscomp exec scdb -d "$DATABASE" -i $OUTPUT/$NAME/EVENT.xml --debug  2>> $OUTPUT/$NAME/log.dat
 	
-	grep -w "caching event" $OUTPUT/$NAME/log.dat | awk '{print $6}' > $OUTPUT/$NAME/event_ID.log
-	
-	if [ -s $OUTPUT/$NAME/event_ID.log ]; then
+	if [[ `grep -w "caching event" $OUTPUT/$NAME/log.dat` ]]; then
 		mkdir $OUTPUT/$NAME/INFO
-		cat $OUTPUT/$NAME/event_ID.log | while read EVEID; do
-			seiscomp exec scbulletin -E $EVEID -3 -d "$DATABASE" > $OUTPUT/$NAME/INFO/$EVEID.info
-		done	
+		echo "Starting scdb ..."
+		seiscomp exec scdb -d "$DATABASE" -i $OUTPUT/$NAME/EVENT.xml --debug  2>> $OUTPUT/$NAME/log.dat
+		grep -w "caching event" $OUTPUT/$NAME/log.dat | awk '{print $6}' > $OUTPUT/$NAME/event_ID.log
+		
+		if [ "$RELOCATE" = "yes" ]; then
+			echo "Starting screloc ..."
+			cat $OUTPUT/$NAME/event_ID.log | while read EVEID; do
+				OID=`echo "select preferredOriginID from Event,PublicObject where Event._oid=PublicObject._oid and PublicObject.publicID='$EVEID'" | \
+				mysql --user="$SQL_U" --password="$SQL_P" -D "$SQL_DB" -h "$SQL_Host" -N 2> /dev/null`
+				
+				seiscomp exec screloc -O "$OID" -d "$Host" --locator NonLinLoc --profile "$NLL_PRO" -u "$userID" --debug \
+				--author="screloc@localhost" 2>> $OUTPUT/$NAME/.NLL_EVEID.dat
+				
+				seiscomp exec scmag -d "$DATABASE" --ep $OUTPUT/$NAME/AMPLITUDES.xml --debug  2>> $OUTPUT/$NAME/log.dat
+				
+				if [[ `grep -w "OriginID=NLL" $OUTPUT/$NAME/.NLL_EVEID.dat` ]]; then
+					NLLOID=`grep -w "OriginID=NLL" $OUTPUT/$NAME/.NLL_EVEID.dat | awk '{print $5}' | cut -f 2 -d "="` 
+					seiscomp exec scbulletin -O "$NLLOID" -3 -d "$DATABASE" > $OUTPUT/$NAME/INFO/$EVEID.info
+				else
+					continue
+				fi	
+			done
+		else		
+			cat $OUTPUT/$NAME/event_ID.log | while read EVEID; do
+				seiscomp exec scbulletin -E $EVEID -3 -d "$DATABASE" > $OUTPUT/$NAME/INFO/$EVEID.info
+			done
+		fi	
 	fi	
 }
 
