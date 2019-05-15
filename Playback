@@ -34,7 +34,7 @@ USAGE ()
 	OPTIONS:
 	-h : Print help message
 	EOF
-}
+} 
 
 
 PRE_PROCESS ()
