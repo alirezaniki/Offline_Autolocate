@@ -7,15 +7,15 @@ SEISCOMP_DIR="/home/alireza/seiscomp3"
 ################## Config
 # MYSQL CONF
 SQL_U="root"			# SQL Username
-SQL_P="SC3"	 			# SQL Password
+SQL_P="SC3"	 		# SQL Password
 SQL_DB="seiscomp3"		# Database
-SQL_Host="localhost"    # Host
+SQL_Host="localhost"    	# Host
 
 # SC3 CONF
 RELOCATE="yes"			# whether to relocate events or not (yes/no)
 NLL_PRO="5L"			# NLL Profile
-userID="root"           # User ID
-Host="localhost"        # Host
+userID="root"         		# User ID
+Host="localhost"        	# Host
 
 ################### DO NOT CHANGE ANYTHING BELOW
 PROCESS_DIR="$HOME_DIR/PROCESS"
