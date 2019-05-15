@@ -9,5 +9,5 @@ Please consider the following TIPS:
 2-2 All archives must contain a file in their main directory named "time.conf" including the
 desired time span in <YYYY/MM/DD hh:mm:ss~YYYY/MM/DD hh:mm:ss> format.
 
-
+3- You must have NonLinLocation installed and configured for relocation process.
 
