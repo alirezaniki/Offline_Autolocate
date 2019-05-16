@@ -7,7 +7,7 @@ REQUIREMENTS:
 
 Please consider the following TIPS:
 1- Creat the following directoris right beside the main script:
-Input, Output, BackUP, PROCESS
+Input, Output, BackUp, PROCESS
 
 2- Specify the proper path for Parent directories and set the configs in main script. 
 
