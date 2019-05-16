@@ -1,4 +1,4 @@
-This script is written for Iranian researchers who are dealing with Naqs
+This script is written for Iranian researchers who are dealing with Naqs utility
 to prepare Nanometrics data for manual/automated locating.
 You can read and modify it as you wish.
 
@@ -11,6 +11,7 @@ You can read and modify it as you wish.
 - Obspy
 
 - Msmod
+
 
 # TIPS
 
