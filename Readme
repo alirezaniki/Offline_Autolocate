@@ -1,5 +1,9 @@
 Now it is possible to process several sources (mseed file and Archives) at the same time. 
-Just put them in Input directory and follow the Tips.
+
+REQUIREMENTS:
+1- Seiscomp3
+2- Pyrocko
+3- Msmod
 
 Please consider the following TIPS:
 1- Creat the following directoris right beside the main script:
