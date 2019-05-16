@@ -2,12 +2,16 @@ Now it is possible to process several sources (mseed file and Archives) at the s
 Just put them in Input directory and follow the Tips.
 
 Please consider the following TIPS:
-1- Specify the proper paths for Parent directories in the main script.
+1- Creat the following directoris right beside the main script:
+Input, Output, BackUP, PROCESS
 
-2- Put all your input data (mseed file or archive) in ./Input directory
-2-1 All mseed files must have .mseed postfix (e.g. file.mseed)
-2-2 All archives must contain a file in their main directory named "time.conf" including the
+2- Specify the proper path for Parent directories and set the configs in main script. 
+
+3- Put all your input data (mseed file or archive) in Input directory
+3-1 All mseed files must have .mseed postfix (e.g. file.mseed)
+3-2 All archives must contain a file in their main directory named "time.conf" including the
 desired time span in <YYYY/MM/DD hh:mm:ss~YYYY/MM/DD hh:mm:ss> format.
 
-3- You must have NonLinLocation installed and configured for relocation process.
+4- You must have NonLinLocation installed and configured for relocation process.
 
+Feel free to contact me in case of any problems.
