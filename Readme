@@ -6,16 +6,21 @@ REQUIREMENTS:
 3- Msmod
 
 Please consider the following TIPS:
-1- Creat the following directoris right beside the main script:
+1- Create the following directoris right beside the main script:
 Input, Output, BackUp, PROCESS
 
 2- Specify the proper path for Parent directories and set the configs in main script. 
 
 3- Put all your input data (mseed file or archive) in Input directory
-3-1 All mseed files must have .mseed postfix (e.g. file.mseed)
+3-1 All mseed data must have .mseed postfix (e.g. file.mseed)
 3-2 All archives must contain a file in their main directory named "time.conf" including the
 desired time span in <YYYY/MM/DD hh:mm:ss~YYYY/MM/DD hh:mm:ss> format.
 
-4- You must have NonLinLocation installed and configured for relocation process.
+4- Set the following SC3 parameters:
+Event.Association.Priorities = TIME_AUTOMATIC
+Event.Association.Methods = NonLinLoc,LOCSAT
+Event.Association.Authors = screloc,scautoloc
+
+5- You must have NonLinLocation installed and configured for relocation process.
 
 Feel free to contact me in case of any problems.
