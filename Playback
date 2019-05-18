@@ -88,13 +88,7 @@ PROCESS ()
 				--author="screloc@localhost" 2>> $OUTPUT/$NAME/.NLL_EVEID.dat
 				
 				seiscomp exec scmag -d "$DATABASE" --ep $OUTPUT/$NAME/AMPLITUDES.xml --debug  2>> $OUTPUT/$NAME/log.dat
-				
-				if [[ `grep -w "OriginID=NLL" $OUTPUT/$NAME/.NLL_EVEID.dat` ]]; then
-					NLLOID=`grep -w "OriginID=NLL" $OUTPUT/$NAME/.NLL_EVEID.dat | awk '{print $5}' | cut -f 2 -d "="` 
-					seiscomp exec scbulletin -O "$NLLOID" -3 -d "$DATABASE" > $OUTPUT/$NAME/INFO/$EVEID.info
-				else
-					continue
-				fi	
+				seiscomp exec scbulletin -E $EVEID -3 -d "$DATABASE" > $OUTPUT/$NAME/INFO/$EVEID.info
 			done
 		else		
 			cat $OUTPUT/$NAME/event_ID.log | while read EVEID; do
